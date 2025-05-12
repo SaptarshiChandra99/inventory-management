@@ -31,6 +31,7 @@ def init_db():
                       item_unit TEXT,
                       minimum_inventory REAL,
                       current_inventory REAL check(current_inventory >= 0) default 0,
+                      init_inventory_pm REAL,
                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                       custom_fields TEXT)''')
         conn.commit()
@@ -106,9 +107,9 @@ def edit_entry(item_id, entry_id):
         if request.method == 'POST':
             # Collect form data
             date = request.form.get('date')
-            purchased = int(request.form.get('purchased', 0))
-            used = int(request.form.get('used', 0))
-            current_inventory = int(request.form.get('current_inventory') , 0)
+            purchased = float(request.form.get('purchased', 0))
+            used = float(request.form.get('used', 0))
+            current_inventory = float(request.form.get('current_inventory' , 0))
             shift = request.form.get('shift', 'day')
             notes = request.form.get('notes', '')
             
@@ -117,7 +118,7 @@ def edit_entry(item_id, entry_id):
             for field_name, field_type in custom_fields.items():
                 value = request.form.get(f'custom_{field_name}', '')
                 if field_type == 'number':
-                    value = int(value) if value else 0
+                    value = float(value) if value else 0
                 elif field_type == 'date' and not value:
                     value = None
                 custom_values[field_name] = value
@@ -131,7 +132,7 @@ def edit_entry(item_id, entry_id):
                 c.execute(f'SELECT init_inventory_pm from items where id = {item_id}')
                 prev_inventory = c.fetchone()[0]
             print(prev_inventory)
-            current_inventory = prev_inventory + purchased - used
+            current_inventory = round(prev_inventory + purchased - used , 3)
             
             # Build update data
             update_data = {
@@ -164,7 +165,7 @@ def edit_entry(item_id, entry_id):
                 prev_inventory = current_inventory
                 for row in subsequent_rows:
                     row_id, row_purchased, row_used = row
-                    new_inventory = prev_inventory + (row_purchased or 0) - (row_used or 0)
+                    new_inventory = round(prev_inventory + (row_purchased or 0) - (row_used or 0) , 3)
                     c.execute(f'UPDATE {table_name} SET current_inventory = ? WHERE id = ?', (new_inventory, row_id))
                     prev_inventory = new_inventory
                 
@@ -324,7 +325,7 @@ def create_item_table(c,item_name, item_unit ,custom_fields):
         "purchased_"+ item_unit  +" REAL",
         "used_"+ item_unit  +" REAL",
         "date DATE",
-        "current_inventory INTEGER CHECK(current_inventory >= 0) default 0",
+        "current_inventory REAL CHECK(current_inventory >= 0) default 0",
         "shift TEXT",
         "notes TEXT"
     ]
@@ -333,7 +334,7 @@ def create_item_table(c,item_name, item_unit ,custom_fields):
     for field_name, field_type in custom_fields.items():
         sql_type = "TEXT"
         if field_type == "number":
-            sql_type = "INTEGER"
+            sql_type = "REAL"
         elif field_type == "date":
             sql_type = "TEXT"
         columns.append(f"{normalize_names(field_name)} {sql_type}")
@@ -357,6 +358,7 @@ def add_item():
         item_unit = request.form['item_unit']
         minimum_inventory = request.form.get('minimum_inventory', 0)
         current_inventory = request.form.get('current_inventory',0)  
+        init_inventory_pm = current_inventory
         # Handle custom fields
         custom_fields = {}
         for key in request.form:
@@ -373,7 +375,7 @@ def add_item():
         
         try:
             # Save item metadata
-            c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,custom_fields) VALUES (?, ?, ?, ? ,?, ?)',
+            c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,init_inventory_pm,custom_fields) VALUES (?,?, ?, ?, ? ,?, ?)',
                      (name, item_type,item_unit, minimum_inventory, current_inventory,json.dumps(custom_fields)))
             create_item_table(c,name, item_unit, custom_fields)
             conn.commit()
@@ -403,7 +405,7 @@ def add_column(item_id):
             # Add the new column
             sql_type = {
                 'text': 'TEXT',
-                'number': 'INTEGER',
+                'number': 'REAL',
                 'date': 'TEXT'
             }.get(column_type, 'TEXT')
             
@@ -514,7 +516,7 @@ def item_form(item_id):
         shift = request.form.get('shift', 'day')
         notes = request.form.get('notes', '')
        # print(cur_inv , purchased , used ,  '!!!!!!')
-        current_inventory = (cur_inv + int(purchased)) - int(used)
+        current_inventory = round((cur_inv + float(purchased)) - float(used) , 3) 
         # Prepare columns and values
         columns = ['item_id','date' , 'purchased_'+item_unit , 'used_'+item_unit, 'current_inventory' , 'shift', 'notes']
         values = [item_id ,date , purchased ,used , current_inventory , shift, notes]

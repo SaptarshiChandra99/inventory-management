@@ -14,13 +14,13 @@
             <div class="form-group">
                 <label for="purchased">Purchased ({{ item_unit }}):</label>
                 <input type="number" id="purchased" name="purchased" 
-                       value="{{ entry['purchased_' + item_unit] }}" min="0" required>
+                       value="{{ entry['purchased_' + item_unit] }}" min="0" step="0.001" required>
             </div>
             
             <div class="form-group">
                 <label for="used">Used ({{ item_unit }}):</label>
                 <input type="number" id="used" name="used" 
-                       value="{{ entry['used_' + item_unit] }}" min="0" required>
+                       value="{{ entry['used_' + item_unit] }}" min="0" step="0.001" required>
             </div>
         </div>
         
@@ -46,7 +46,7 @@
                 {% if field_type == 'number' %}
                     <input type="number" id="custom_{{ field_name }}" 
                            name="custom_{{ field_name }}" 
-                           value="{{ entry.get(field_name, 0) }}">
+                           value="{{ entry.get(field_name, 0) }}" step="0.001">
                 {% elif field_type == 'date' %}
                     <input type="date" id="custom_{{ field_name }}" 
                            name="custom_{{ field_name }}" 
