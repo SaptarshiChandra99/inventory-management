@@ -32,7 +32,7 @@
             <div class="form-group">
                 <label for="new_min_inventory">New Minimum Inventory:</label>
                 <input type="number" id="new_min_inventory" name="new_min_inventory" 
-                       min="0" value="{{ min_inv }}" required>
+                       min="0" value="{{ min_inv }}" step="0.001" required>
             </div>
             <button type="submit" class="btn primary">Save</button>
             <button type="button" class="btn" onclick="toggleMinInvEdit()">Cancel</button>
@@ -53,12 +53,12 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="purchased">Purchased/Added {{item_unit}}:</label>
-                <input type="number" id="purchased" name="purchased" min="0" value="0" required>
+                <input type="number" id="purchased" name="purchased" min="0" value="0" step="0.001" required>
             </div>
             
             <div class="form-group">
                 <label for="used">Used {{item_unit}}:</label>
-                <input type="number" id="used" name="used" min="0" value="0" required>
+                <input type="number" id="used" name="used" min="0" value="0" step="0.001" required>
             </div>
             
             <div class="form-group">
@@ -79,7 +79,7 @@
             <div class="form-group">
                 <label for="custom_{{ field_name }}">{{ field_name }}:</label>
                 {% if field_type == 'number' %}
-                    <input type="number" id="custom_{{ field_name }}" name="custom_{{ field_name }}" value="0">
+                    <input type="number" id="custom_{{ field_name }}" name="custom_{{ field_name }}" value="0" step="0.001">
                 {% elif field_type == 'date' %}
                     <input type="date" id="custom_{{ field_name }}" name="custom_{{ field_name }}">
                 {% else %}

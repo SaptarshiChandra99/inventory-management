@@ -29,9 +29,9 @@ def init_db():
                       name TEXT UNIQUE,
                       item_type TEXT,
                       item_unit TEXT,
-                      minimum_inventory INTEGER,
-                      current_inventory INTEGER check(current_inventory >= 0),
-                      init_inventory_pm INTEGER,
+                      minimum_inventory REAL,
+                      current_inventory REAL check(current_inventory >= 0) default 0,
+                      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                       custom_fields TEXT)''')
         conn.commit()
         conn.close()
@@ -321,10 +321,10 @@ def create_item_table(c,item_name, item_unit ,custom_fields):
     columns = [
         "id INTEGER PRIMARY KEY AUTOINCREMENT",
         "item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE",
-        "purchased_"+ item_unit  +" INTEGER",
-        "used_"+ item_unit  +" INTEGER",
+        "purchased_"+ item_unit  +" REAL",
+        "used_"+ item_unit  +" REAL",
         "date DATE",
-        "current_inventory INTEGER CHECK(current_inventory >= 0)",
+        "current_inventory INTEGER CHECK(current_inventory >= 0) default 0",
         "shift TEXT",
         "notes TEXT"
     ]
@@ -357,7 +357,6 @@ def add_item():
         item_unit = request.form['item_unit']
         minimum_inventory = request.form.get('minimum_inventory', 0)
         current_inventory = request.form.get('current_inventory',0)  
-        init_inventory_pm = current_inventory
         # Handle custom fields
         custom_fields = {}
         for key in request.form:
@@ -374,8 +373,8 @@ def add_item():
         
         try:
             # Save item metadata
-            c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,init_inventory_pm ,custom_fields) VALUES (?, ?, ?, ?, ? ,?, ?)',
-                     (name, item_type,item_unit, minimum_inventory, current_inventory,init_inventory_pm,json.dumps(custom_fields)))
+            c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,custom_fields) VALUES (?, ?, ?, ? ,?, ?)',
+                     (name, item_type,item_unit, minimum_inventory, current_inventory,json.dumps(custom_fields)))
             create_item_table(c,name, item_unit, custom_fields)
             conn.commit()
             return redirect(url_for('index'))

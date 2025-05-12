@@ -29,17 +29,18 @@
                 <option value="gram">Grams</option>
                 <option value="ton">Tons</option>
                 <option value="litres">Liters</option>
+                <option value="ml">Mili Liters</option>
             </select>
         </div>
         
         <div class="form-group">
             <label for="minimum_inventory">Minimum Inventory Level:</label>
-            <input type="number" id="minimum_inventory" name="minimum_inventory" min="0" value="0">
+            <input type="number" id="minimum_inventory" name="minimum_inventory" min="0" value="0" step="0.001" required>
         </div>
 
         <div class="form-group">
             <label for="current_inventory">Current Inventory Level:</label>
-            <input type="number" id="current_inventory" name="current_inventory" min="0" value="0">
+            <input type="number" id="current_inventory" name="current_inventory" min="0" value="0" step="0.001" required>
         </div>
         
         <h3>Custom Fields</h3>
@@ -71,7 +72,7 @@
             newField.className = 'custom-field';
             newField.innerHTML = `
                 <input type="text" name="custom_field_name_${customFieldCounter}" placeholder="Field Name">
-                <select name="custom_field_type_${customFieldCounter}">
+                <select name="custom_field_type_${customFieldCounter}" step="0.001">
                     <option value="text">Text</option>
                     <option value="number">Number</option>
                     <option value="date">Date</option>
