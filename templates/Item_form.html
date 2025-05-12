@@ -79,7 +79,7 @@
             <div class="form-group">
                 <label for="custom_{{ field_name }}">{{ field_name }}:</label>
                 {% if field_type == 'number' %}
-                    <input type="number" id="custom_{{ field_name }}" name="custom_{{ field_name }}" value="0" step="0.001">
+                    <input type="number" id="custom_{{ field_name }}" name="custom_{{ field_name }}" value="0" step="0.001" min="0">
                 {% elif field_type == 'date' %}
                     <input type="date" id="custom_{{ field_name }}" name="custom_{{ field_name }}">
                 {% else %}

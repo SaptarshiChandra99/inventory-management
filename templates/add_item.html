@@ -72,7 +72,7 @@
             newField.className = 'custom-field';
             newField.innerHTML = `
                 <input type="text" name="custom_field_name_${customFieldCounter}" placeholder="Field Name">
-                <select name="custom_field_type_${customFieldCounter}" step="0.001">
+                <select name="custom_field_type_${customFieldCounter}" step="0.001" min="0">
                     <option value="text">Text</option>
                     <option value="number">Number</option>
                     <option value="date">Date</option>
