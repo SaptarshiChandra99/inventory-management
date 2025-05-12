@@ -376,7 +376,7 @@ def add_item():
         try:
             # Save item metadata
             c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,init_inventory_pm,custom_fields) VALUES (?,?, ?, ?, ? ,?, ?)',
-                     (name, item_type,item_unit, minimum_inventory, current_inventory,json.dumps(custom_fields)))
+                     (name, item_type,item_unit, minimum_inventory,init_inventory_pm, current_inventory,json.dumps(custom_fields)))
             create_item_table(c,name, item_unit, custom_fields)
             conn.commit()
             return redirect(url_for('index'))
@@ -549,6 +549,9 @@ def item_form(item_id):
     # Get filter parameters
     month = request.args.get('month')
     year = request.args.get('year')
+    #get search parameter
+    search_res = request.args.get('date_search')
+    print(search_res , "!!!!!!!!!!!!here")
     
     # Base query for entries
     query = f"SELECT * FROM {table_name}"
@@ -560,7 +563,7 @@ def item_form(item_id):
     # print(f"Sample date from DB: {sample_date}")  # Should output like "2023-06-15"
     
     # Apply filters if provided
-    if month or year:
+    if month or year or search_res:
         query += " WHERE "
         conditions = []
         if month:
@@ -569,14 +572,19 @@ def item_form(item_id):
         if year:
             conditions.append("strftime('%Y', date) = ?")
             params.append(year)
+        if search_res:
+            print(search_res)
+            conditions.append( "date = ?")
+            params.append(search_res)
+        
         query += " AND ".join(conditions)
     
     query += " ORDER BY id ASC limit 10"
     
     # Get entries
     c.execute(query, params)
-   # columns = [description[0] for description in c.description]
-   # entries = [dict(zip(columns, row)) for row in c.fetchall()]
+    columns = [description[0] for description in c.description]
+    entries = [dict(zip(columns, row)) for row in c.fetchall()]
     
     # Get available years and months for filter dropdowns
     c.execute(f"SELECT DISTINCT strftime('%Y', date) AS year FROM {table_name} ORDER BY year")
@@ -593,23 +601,16 @@ def item_form(item_id):
     available_months = [ (row[0], months_map.get(row[0][:2], 'Unknown')) for row in c.fetchall()]
     print(available_months)
 
-    #get search parameter
-    search_res = request.args.get('date_search')
-    print(search_res , "!!!!!!!!!!!!here")
     # Modify your entries query to include date filter
-    query = f"SELECT * FROM {table_name} "
-    params = []
-    if search_res:
-        print(search_res)
-        query += "where date = ?"
-        params.append(search_res)
+    # query = f"SELECT * FROM {table_name} "
+    # params = []
     
-    query += " ORDER BY id ASC limit 10"
-    print(query)
-    print(params)
-    c.execute(query , params)
-    columns = [description[0] for description in c.description]
-    entries = [dict(zip(columns, row)) for row in c.fetchall()]
+    # query += " ORDER BY id ASC limit 10"
+    # print(query)
+    # print(params)
+    # c.execute(query , params)
+    # columns = [description[0] for description in c.description]
+    # entries = [dict(zip(columns, row)) for row in c.fetchall()]
     
 
     
