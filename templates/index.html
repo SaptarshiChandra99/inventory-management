@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Inventory Management System</h1>
+    <div class="inventory status" style="background-color: rgb(243, 99, 99);">
+        <h4><a href = "{{ url_for('low_inventory_list') }}">No of low inventory items: <b>{{no_of_low_inv_item[0]}}</a></b></h4>
+    </div>
+    
+    
+    <a href="{{ url_for('add_item') }}" class="btn">Add New Item</a>
+
+    <!-- Search Form (submits to server) -->
+    <form method="GET" action="{{ url_for('index') }}" class="search-container">
+        <div class="search-input-container">
+            <input type="text" name="search" id="searchInput" 
+                   placeholder="Search items..." class="search-input"
+                   value="{{ search_term }}">
+            {% if search_term %}
+            <a href="{{ url_for('index') }}" class="clear-search">×</a>
+            {% endif %}
+        </div>
+        <button type="submit" class="search-btn">🔍</button>
+    </form>
+    
+    <!-- No Results Message -->
+    {% if search_term and not items %}
+    <div class="no-results-message">
+        No matching items found for "{{ search_term }}"
+    </div>
+    {% endif %}
+    
+    <h2>Inventory Items</h2>
+    <table class="item-table">
+        <tr>
+            <td> ITEM LIST  </td>  
+            <td>ACTION</td>
+        </tr>
+        {% for item in items %}
+            <tr  class="item-row">
+               <td> <a href="{{ url_for('item_form', item_id=item[0]) }}">{{ item[1] }}</a>  </td>  
+               <td>
+                    <form method="POST" action="{{ url_for('delete_item', item_id=item[0]) }}" 
+                              onsubmit="return confirm('Are you sure you want to delete this entry?');">
+                            <button type="submit" class="delete-btn">×</button>
+                    </form>
+
+               </td>
+            </tr>
+        {% endfor %}
+        </table>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            const searchForm = document.querySelector('.search-form');
+
+            // Show/hide clear button based on input
+            function toggleClearButton() {
+                clearSearch.style.display = searchInput.value ? 'block' : 'none';
+            }
+
+            // Initial check for clear button
+            toggleClearButton();
+
+            // Update clear button on input
+            searchInput.addEventListener('input', toggleClearButton);
+
+            // Clear search input and submit form
+            clearSearch.addEventListener('click', function() {
+                searchInput.value = '';
+                searchForm.submit();
+                searchInput.focus();
+            });
+
+            // Submit form on Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchForm.submit();
+                }
+            });
+        });
+        </script>
+{% endblock %}

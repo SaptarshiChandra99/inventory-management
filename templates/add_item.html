@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Add New Item</h1>
+    
+    <form method="POST" class="item-form">
+        <div class="form-group" style="background-color: rgb(32, 240, 32); text-align: center;">
+            <h4>*******Id, Purchased, Used , Date ,Shift ,Current Inventory, Notes is generated Automatically do not regenerate******</h4>
+        </div>
+        <div class="form-group">
+            <label for="name">Item Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="item_type">Item Type:</label>
+            <select id="item_type" name="item_type" required>
+                <option value="spare_parts">Spare Parts</option>
+                <option value="raw_materials">Raw Materials</option>
+                <option value="inventory">Inventory</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="item_unit">Item Unit:</label>
+            <select id="item_unit" name="item_unit" required>
+                <option value="kg">Kilo gram</option>
+                <option value="no">Number</option>
+                <option value="gram">Grams</option>
+                <option value="ton">Tons</option>
+                <option value="litres">Liters</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="minimum_inventory">Minimum Inventory Level:</label>
+            <input type="number" id="minimum_inventory" name="minimum_inventory" min="0" value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="current_inventory">Current Inventory Level:</label>
+            <input type="number" id="current_inventory" name="current_inventory" min="0" value="0">
+        </div>
+        
+        <h3>Custom Fields</h3>
+        <div id="custom-fields-container">
+            <div class="custom-field">
+                <input type="text" name="custom_field_name_0" placeholder="Field Name">
+                <select name="custom_field_type_0">
+                    <option value="text">Text</option>
+                    <option value="number">Number</option>
+                    <option value="date">Date</option>
+                </select>
+            </div>
+        </div>
+        
+        <button type="button" id="add-custom-field" class="btn secondary">Add Another Field</button>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn primary">Save Item</button>
+            <a href="{{ url_for('index') }}" class="btn">Cancel</a>
+        </div>
+    </form>
+
+    <script>
+        let customFieldCounter = 1;
+        
+        document.getElementById('add-custom-field').addEventListener('click', function() {
+            const container = document.getElementById('custom-fields-container');
+            const newField = document.createElement('div');
+            newField.className = 'custom-field';
+            newField.innerHTML = `
+                <input type="text" name="custom_field_name_${customFieldCounter}" placeholder="Field Name">
+                <select name="custom_field_type_${customFieldCounter}">
+                    <option value="text">Text</option>
+                    <option value="number">Number</option>
+                    <option value="date">Date</option>
+                </select>
+            `;
+            container.appendChild(newField);
+            customFieldCounter++;
+        });
+    </script>
+{% endblock %}

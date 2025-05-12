@@ -1,0 +1,100 @@
+# Inventory Management System Documentation
+
+## Overview
+This document provides an overview of the Inventory Management System, a Flask-based web application designed to manage inventory items, track their quantities, and support custom fields for item-specific data. The system uses SQLite as its database and includes features like item creation, deletion, updating, searching, and exporting data to Excel.
+
+## Key Components
+
+### Files
+- **app.py**: The main Flask application containing routes, database logic, and business rules.
+- **index.html**: The main interface for listing inventory items, with search and delete functionality.
+- **Other templates** (assumed): `add_item.html`, `item_form.html`, `edit_entry.html`, `add_column.html`, `delete_column.html` for various UI components.
+
+### Database Schema
+- **items table**:
+  - `id`: Primary key, auto-incremented.
+  - `name`: Unique item name (TEXT).
+  - `item_type`: Type of item (TEXT).
+  - `item_unit`: Unit of measurement (TEXT).
+  - `minimum_inventory`: Minimum required inventory (INTEGER, CHECK constraint: != 0).
+  - `current_inventory`: Current inventory level (INTEGER, CHECK constraint: != 0).
+  - `init_inventory_pm`: Initial inventory for calculations (INTEGER).
+  - `custom_fields`: JSON string storing custom field definitions (TEXT).
+- **Item-specific tables** (e.g., `item_widget`):
+  - `id`: Primary key, auto-incremented.
+  - `item_id`: Foreign key referencing `items(id)` with `ON DELETE CASCADE`.
+  - `purchased_{unit}`: Quantity purchased (INTEGER).
+  - `used_{unit}`: Quantity used (INTEGER).
+  - `date`: Date of entry (DATE).
+  - `current_inventory`: Current inventory for the entry (INTEGER, CHECK constraint: != 0).
+  - `shift`: Shift information (TEXT).
+  - `notes`: Additional notes (TEXT).
+  - Custom fields: Added dynamically based on `custom_fields` in `items`.
+
+### Key Routes
+- **/ (index)**: Displays the list of items with server-side search functionality.
+- **/add_item**: Handles item creation with custom fields.
+- **/item/<item_id>**: Manages item-specific data entries (add/view).
+- **/edit_entry/<item_id>/<entry_id>**: Edits specific entries in item tables.
+- **/delete_item/<item_id>**: Deletes an item and its associated table.
+- **/delete_entry/<item_id>/<entry_id>**: Deletes a specific entry.
+- **/add_column/<item_id>**: Adds a custom column to an item’s table.
+- **/delete_column/<item_id>**: Deletes a custom column.
+- **/update_min_inventory/<item_id>**: Updates the minimum inventory level.
+- **/download_excel/<item_id>**: Exports item data to Excel.
+
+## Special Character Support in Column Names
+To support special characters (e.g., `-`, `.`, `/`, `*`) in column names, the application has been modified as follows:
+- **normalize_names**: Retains allowed special characters (`-`, `.`, `/`, `*`) and replaces other non-alphanumeric characters with underscores. Ensures column names are SQL-safe.
+- **Quoted Identifiers**: All column names in SQL queries are wrapped in double quotes (`"`) to handle special characters.
+- **Dynamic SQL**: Functions like `create_item_table`, `add_column`, `item_form`, and `edit_entry` quote column names dynamically to support special characters.
+
+### Example
+For an item named `Widget-A/B*C` with a custom field `Part-Number/1`, the table and column names are:
+- Table: `item_widget_a_b_c` (normalized for table name).
+- Columns: `"purchased_unit"`, `"used_unit"`, `"Part-Number/1"`, etc., all quoted in SQL queries.
+
+## Implementation Details
+- **Database Constraints**:
+  - `CHECK(minimum_inventory != 0)` and `CHECK(current_inventory != 0)` in `items` table.
+  - `CHECK(current_inventory != 0)` in item-specific tables.
+  - Foreign key constraints with `ON DELETE CASCADE` for item-specific tables.
+- **Search**: Server-side search using `LIKE` for efficient filtering.
+- **Error Handling**: Try-except blocks catch SQLite errors and return user-friendly messages.
+- **Excel Export**: Uses pandas to generate Excel files for item data.
+
+## Usage Notes
+- **Adding Items**:
+  - Use `/add_item` to create items with custom fields (e.g., `Part-Number/1` as a column).
+  - Special characters in field names are preserved and quoted in SQL.
+- **Searching**:
+  - Search via `index` route with `?search=<query>` for efficient server-side filtering.
+- **Data Integrity**:
+  - `CHECK` constraints prevent `0` values in critical fields.
+  - Unique constraint on `items.name` ensures no duplicate items.
+- **Custom Fields**:
+  - Added via `/add_column` and stored as JSON in `custom_fields`.
+  - Support text, number, and date types, with proper SQL type mapping.
+
+## Potential Improvements
+- **Input Validation**: Add client-side and server-side validation for special characters to prevent SQL injection (though quoting mitigates this).
+- **Migration Script**: For existing databases, provide a script to rename columns/tables to include special characters.
+- **UI Feedback**: Enhance error messages for `CHECK` constraint violations (e.g., “Cannot set inventory to 0”).
+- **Performance**: Add indexes on frequently queried columns (e.g., `items.name`) for large datasets.
+
+## Example SQL Query with Special Characters
+```sql
+CREATE TABLE "item_widget_a_b_c" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    "purchased_unit" INTEGER,
+    "used_unit" INTEGER,
+    date DATE,
+    "current_inventory" INTEGER CHECK("current_inventory" != 0),
+    shift TEXT,
+    notes TEXT,
+    "Part-Number/1" TEXT
+);
+```
+
+This documentation provides a comprehensive overview of the system, focusing on the special character support for column names as requested. Let me know if you need further details or additional features!
