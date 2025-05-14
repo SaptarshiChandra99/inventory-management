@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h2><i class="fas fa-trash-alt"></i> Delete Column from {{ item_name }}</h2>
-    </div>
+    <h2>Delete Column from {{ item_name }}</h2>
     
-    <form method="POST" class="item-form">
+    <form method="POST">
         <div class="form-group">
             <label for="column_name">Select Column to Delete:</label>
             <select id="column_name" name="column_name" required>
@@ -19,9 +16,18 @@
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary danger">Delete Column</button>
-            <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn danger">Delete Column</button>
+            <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn">Cancel</a>
         </div>
     </form>
-</div>
+    
+    <style>
+        .danger {
+            background-color: #ff4444;
+            color: white;
+        }
+        .danger:hover {
+            background-color: #cc0000;
+        }
+    </style>
 {% endblock %}

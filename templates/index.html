@@ -1,102 +1,97 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h2>Dashboard Overview</h2>
+    <h1>Inventory Management System</h1>
+
+    <div class="fp-dashboard">
+
+        <div class="inventory status" style="background-color: rgb(75, 23, 218);">
+        <h4>Total No of inventory items: <b>{{no_of_items[0]}}</b></h4>
+        </div>
+        <div class="inventory status" style="background-color: rgb(243, 99, 99);">
+        <h4><a href = "{{ url_for('low_inventory_list') }}">No of low inventory items: <b>{{no_of_low_inv_item[0]}}</a></b></h4>
+        </div>
+        <div class="inventory status" style="background-color: rgb(23, 218, 39);">
+            <h4>Todays Production : <b>5000kg</b></h4>
+        </div>
+        <div class="inventory status" style="background-color: rgb(235, 118, 9);">
+            <h4>Pending Production: <b>2000kg</b></h4>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card purple">
-                <i class="fas fa-box-open"></i>
-                <h3>Total Items</h3>
-                <p>{{no_of_items[0]}}</p>
-            </div>
-            <div class="stat-card red">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Low Inventory</h3>
-                <p><a href="{{ url_for('low_inventory_list') }}">{{no_of_low_inv_item[0]}}</a></p>
-            </div>
-            <div class="stat-card green">
-                <i class="fas fa-industry"></i>
-                <h3>Today's Production</h3>
-                <p>5000kg</p>
-            </div>
-            <div class="stat-card orange">
-                <i class="fas fa-clock"></i>
-                <h3>Pending Production</h3>
-                <p>2000kg</p>
-            </div>
-        </div>
+    </div>
 
-        <div class="action-bar">
-            <a href="{{ url_for('add_item') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add New Item
-            </a>
-            
-            <form method="GET" action="{{ url_for('index') }}" class="search-form">
-                <div class="search-box">
-                    <input type="text" name="search" id="searchInput" 
-                           placeholder="Search items..." 
-                           value="{{ search_term }}">
-                    <button type="submit" class="search-btn">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    {% if search_term %}
-                    <a href="{{ url_for('index') }}" class="clear-search">
-                        <i class="fas fa-times"></i>
-                    </a>
-                    {% endif %}
-                </div>
-            </form>
-        </div>
-        
-        {% if search_term and not items %}
-        <div class="empty-state">
-            <i class="fas fa-search"></i>
-            <h3>No results found</h3>
-            <p>No matching items found for "{{ search_term }}"</p>
-        </div>
-        {% endif %}
-        
-        <div class="inventory-table-container">
-            <h2><i class="fas fa-list"></i> Inventory Items</h2>
-            
-            {% if items %}
-            <table class="inventory-table">
-                <thead>
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in items %}
-                    <tr>
-                        <td>
-                            <a href="{{ url_for('item_form', item_id=item[0]) }}" class="item-link">
-                                <i class="fas fa-box"></i> {{ item[1] }}
-                            </a>
-                        </td>
-                        <td class="actions">
-                            <form method="POST" action="{{ url_for('delete_item', item_id=item[0]) }}" 
-                                  onsubmit="return confirm('Are you sure you want to delete this item?');">
-                                <button type="submit" class="btn-icon danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <h3>No inventory items</h3>
-                <p>Add your first item to get started</p>
-            </div>
+    <a href="{{ url_for('add_item') }}" class="btn">Add New Item</a>
+
+    <!-- Search Form (submits to server) -->
+    <form method="GET" action="{{ url_for('index') }}" class="search-container">
+        <div class="search-input-container">
+            <input type="text" name="search" id="searchInput" 
+                   placeholder="Search items..." class="search-input"
+                   value="{{ search_term }}">
+            {% if search_term %}
+            <a href="{{ url_for('index') }}" class="clear-search">×</a>
             {% endif %}
         </div>
+        <button type="submit" class="search-btn">🔍</button>
+    </form>
+    
+    <!-- No Results Message -->
+    {% if search_term and not items %}
+    <div class="no-results-message">
+        No matching items found for "{{ search_term }}"
     </div>
+    {% endif %}
+    
+    <h2>Inventory Items</h2>
+    <table class="item-table">
+        <tr>
+            <td> ITEM LIST  </td>  
+            <td>ACTION</td>
+        </tr>
+        {% for item in items %}
+            <tr  class="item-row">
+               <td> <a href="{{ url_for('item_form', item_id=item[0]) }}">{{ item[1] }}</a>  </td>  
+               <td>
+                    <form method="POST" action="{{ url_for('delete_item', item_id=item[0]) }}" 
+                              onsubmit="return confirm('Are you sure you want to delete this entry?');">
+                            <button type="submit" class="delete-btn">×</button>
+                    </form>
+
+               </td>
+            </tr>
+        {% endfor %}
+        </table>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            const searchForm = document.querySelector('.search-form');
+
+            // Show/hide clear button based on input
+            function toggleClearButton() {
+                clearSearch.style.display = searchInput.value ? 'block' : 'none';
+            }
+
+            // Initial check for clear button
+            toggleClearButton();
+
+            // Update clear button on input
+            searchInput.addEventListener('input', toggleClearButton);
+
+            // Clear search input and submit form
+            clearSearch.addEventListener('click', function() {
+                searchInput.value = '';
+                searchForm.submit();
+                searchInput.focus();
+            });
+
+            // Submit form on Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchForm.submit();
+                }
+            });
+        });
+        </script>
 {% endblock %}

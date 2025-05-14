@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h2><i class="fas fa-columns"></i> Add New Column to {{ item_name }}</h2>
-    </div>
+    <h2>Add New Column to {{ item_name }}</h2>
     
-    <form method="POST" class="item-form">
+    <form method="POST">
         <div class="form-group">
             <label for="column_name">Column Name:</label>
             <input type="text" id="column_name" name="column_name" required>
@@ -14,7 +11,7 @@
         
         <div class="form-group">
             <label for="column_type">Data Type:</label>
-            <select id="column_type" name="column_type" required>
+            <select id="column_type" name="column_type" step= "0.001" required>
                 <option value="text">Text</option>
                 <option value="number">Number</option>
                 <option value="date">Date</option>
@@ -22,9 +19,8 @@
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Add Column</button>
-            <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn primary">Add Column</button>
+            <a href="" class="btn">Cancel</a>
         </div>
     </form>
-</div>
 {% endblock %}
