@@ -2,11 +2,24 @@
 
 {% block content %}
     <h1>Inventory Management System</h1>
-    <div class="inventory status" style="background-color: rgb(243, 99, 99);">
+
+    <div class="fp-dashboard">
+
+        <div class="inventory status" style="background-color: rgb(75, 23, 218);">
+        <h4>Total No of inventory items: <b>{{no_of_items[0]}}</b></h4>
+        </div>
+        <div class="inventory status" style="background-color: rgb(243, 99, 99);">
         <h4><a href = "{{ url_for('low_inventory_list') }}">No of low inventory items: <b>{{no_of_low_inv_item[0]}}</a></b></h4>
+        </div>
+        <div class="inventory status" style="background-color: rgb(23, 218, 39);">
+            <h4>Todays Production : <b>5000kg</b></h4>
+        </div>
+        <div class="inventory status" style="background-color: rgb(235, 118, 9);">
+            <h4>Pending Production: <b>2000kg</b></h4>
+        </div>
+
     </div>
-    
-    
+
     <a href="{{ url_for('add_item') }}" class="btn">Add New Item</a>
 
     <!-- Search Form (submits to server) -->

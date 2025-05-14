@@ -260,9 +260,12 @@ def index():
     # Get low inventory count
     c.execute('SELECT COUNT(*) FROM items WHERE minimum_inventory >= current_inventory')
     no_of_low_inv_item = c.fetchone()
+
+    c.execute('SELECT COUNT(id) FROM ITEMS ')
+    no_of_items = c.fetchone()
     
     conn.close()
-    return render_template('index.html', items=items , no_of_low_inv_item = no_of_low_inv_item, search_term=search_term)
+    return render_template('index.html', items=items , no_of_low_inv_item = no_of_low_inv_item, search_term=search_term , no_of_items = no_of_items)
 
 @app.route('/low_inventory_list' , methods = ['GET'])
 def low_inventory_list():
