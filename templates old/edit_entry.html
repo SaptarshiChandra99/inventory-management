@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h2><i class="fas fa-edit"></i> Edit Entry for {{ item_name }}</h2>
-    </div>
+    <h2>Edit Entry for {{ item_name }}</h2>
     
-    <form method="POST" class="entry-form">
+    <form method="POST">
         <div class="form-row">
             <div class="form-group">
                 <label for="date">Date:</label>
@@ -72,5 +69,4 @@
             <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
-</div>
 {% endblock %}

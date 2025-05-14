@@ -1,274 +1,247 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>{{ item_name }} - Inventory Form | Item ID - {{ item_id }}</h1>
-    <p>Type: {{ item_type }} | Minimum Inventory: {{ min_inv }} | Current Inventory: {{ cur_inv }}</p>
-
-    {% if message %}
-        <script>
-            alert("{{ message }}");
-        </script>
-{% endif %}
-
-    <div class="inventory-status"    style="background-color: rgb(243, 99, 99);"
-        data-min-inv="{{ min_inv }}"
-        data-cur-inv="{{ cur_inv }}">
-        <h4>Warning Low Inventory</h4>
-    </div>
-    
-    <a href="{{ url_for('index') }}" class="btn">Back to Inventory</a>
-    <a href="{{ url_for('add_column', item_id=item_id) }}" class="btn">Add Column</a>
-    <a href="{{ url_for('delete_column', item_id=item_id) }}" class="btn">Delete Column</a>
-
-    <div class="min-inv-control">
-        
-        <!-- Toggle button -->
-        <button onclick="toggleMinInvEdit()" class="btn" id="editMinInvBtn">
-            Change Minimum Inventory
-        </button>
-        <!-- Edit form (hidden by default) -->
-        <form method="POST" action="{{ url_for('update_min_inventory', item_id=item_id) }}" 
-              id="minInvForm" style="display: none;">
-            <div class="form-group">
-                <label for="new_min_inventory">New Minimum Inventory:</label>
-                <input type="number" id="new_min_inventory" name="new_min_inventory" 
-                       min="0" value="{{ min_inv }}" step="0.001" required>
+    <div class="item-detail-container">
+        <div class="item-header">
+            <div>
+                <h2><i class="fas fa-box"></i> {{ item_name }}</h2>
+                <p class="item-meta">ID: {{ item_id }} | Type: {{ item_type }} | Unit: {{ item_unit }}</p>
+                <p class="item-inventory">
+                    Minimum: <span class="badge">{{ min_inv }}</span> | 
+                    Current: <span class="badge {% if cur_inv < min_inv %}badge-warning{% else %}badge-success{% endif %}">{{ cur_inv }}</span>
+                </p>
             </div>
-            <button type="submit" class="btn primary">Save</button>
-            <button type="button" class="btn" onclick="toggleMinInvEdit()">Cancel</button>
-        </form>
-    </div>
-    
-    <h2>Add New Entry</h2>
-    <form method="POST" class="entry-form">
-        <div class="form-group">
-            <label for="date">Date:</label>
+            <a href="{{ url_for('index') }}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
 
-            <input type="date" id="date" name="date" required>
-            <script>
-                document.getElementById('date').valueAsDate = new Date();
-            </script>
+        {% if message %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
         </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label for="purchased">Purchased/Added {{item_unit}}:</label>
-                <input type="number" id="purchased" name="purchased" min="0" value="0" step="0.001" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="used">Used {{item_unit}}:</label>
-                <input type="number" id="used" name="used" min="0" value="0" step="0.001" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="shift">Shift:</label>
-                <select id="shift" name="shift" required>
-                    <option value="day">Day</option>
-                    <option value="night">Night</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="current_inventory">Current Inventory {{item_unit}}:</label>
-                <input type="number" id="current_inventory" name="current_inventory" min="0" value={{cur_inv}}  readonly>
-            </div>
-        </div>
-        
-        {% for field_name, field_type in custom_fields.items() %}
-            <div class="form-group">
-                <label for="custom_{{ field_name }}">{{ field_name }}:</label>
-                {% if field_type == 'number' %}
-                    <input type="number" id="custom_{{ field_name }}" name="custom_{{ field_name }}" value="0" step="0.001" min="0">
-                {% elif field_type == 'date' %}
-                    <input type="date" id="custom_{{ field_name }}" name="custom_{{ field_name }}">
-                {% else %}
-                    <input type="text" id="custom_{{ field_name }}" name="custom_{{ field_name }}">
-                {% endif %}
-            </div>
-        {% endfor %}
-        
-        <div class="form-group">
-            <label for="notes">Notes:</label>
-            <textarea id="notes" name="notes" rows="3"></textarea>
-        </div>
-        
-        <div class="form-actions">
-            <button type="submit" class="btn primary">Save Entry</button>
-        </div>
-    </form>
-    
-    <h2>Inventory History</h2>
-
-    <!-- Date Search Bar -->
-<div class="search-container">
-    <form method="GET" action="{{ url_for('item_form', item_id=item_id) }}" class="date-search-form">
-        <div class="search-group">
-            <label for="date_search">Search by Date:</label>
-            <div class="input-group">
-                <input type="date" id="date_search" name="date_search" class="search-input" value="{{ search_res if search_res else '' }}"
-                       max="{{ datetime.now().strftime('%Y-%m-%d') }}">
-                <button type="submit" formaction="{{ url_for('item_form', item_id=item_id) }}" class="search-btn">
-                    <i class="fas fa-search"></i> Search
-                </button>
-                {% if search_res %}
-                <a href="{{ url_for('item_form', item_id=item_id) }}" class="clear-btn">
-                    <i class="fas fa-times"></i> Clear
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </form>
-</div>  
-    <form method="GET" action="{{ url_for('item_form', item_id=item_id) }}">
-
-
-        <div class="filter-group">
-            <label for="year">Filter by Year:</label>
-            <select name="year" id="year" onchange="this.form.submit()">
-                <option value="">All Years</option>
-                {% for year in available_years %}
-                <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>
-                    {{ year }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <label for="month">Filter by Month:</label>
-            <select name="month" id="month" onchange="this.form.submit()">
-                <option value="">All Months</option>
-                {% for month in available_months %}
-                <option value="{{ month[0][:2] }}" {% if month[0][:2] == current_month %}selected{% endif %}>
-                    {{ month[1] }} ({{ month[0][3:] }})
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        {% if current_year or current_month %}
-        <a href="{{ url_for('item_form', item_id=item_id) }}" class="clear-filters">
-            Clear Filters
-        </a>
         {% endif %}
-    </form>
-</div>
-    <table class="inventory-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Purchased {{item_unit}}</th>
-                <th>Used {{item_unit}}</th>
-                <th>Shift</th>
-                <th>Current Inventory {{item_unit}}{{Unit}}</th>
-                {% for field_name in custom_fields %}
-                    <th>{{ field_name }}</th>
-                {% endfor %}
-                <th>Notes</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in entries %}
-                <tr>
-                    <td>{{entry.id}}</td>
-                    <td>{{ entry.date }}</td>
-                   
-                    <td>{{ entry['purchased_' ~ item_unit] }}</td>
-                    <td>{{ entry['used_' ~ item_unit] }}</td>
+
+        {% if cur_inv < min_inv %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Warning:</strong> Low inventory level
+        </div>
+        {% endif %}
+
+        <div class="action-buttons">
+            <button onclick="toggleMinInvEdit()" class="btn btn-secondary" id="editMinInvBtn">
+                <i class="fas fa-edit"></i> Change Minimum Inventory
+            </button>
+            
+            <form method="POST" action="{{ url_for('update_min_inventory', item_id=item_id) }}" 
+                  id="minInvForm" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new_min_inventory">New Minimum Inventory</label>
+                        <input type="number" id="new_min_inventory" name="new_min_inventory" 
+                               min="0" value="{{ min_inv }}" step="0.001" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-outline" onclick="toggleMinInvEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+            
+            <a href="{{ url_for('add_column', item_id=item_id) }}" class="btn btn-secondary">
+                <i class="fas fa-plus"></i> Add Column
+            </a>
+            <a href="{{ url_for('delete_column', item_id=item_id) }}" class="btn btn-secondary">
+                <i class="fas fa-minus"></i> Delete Column
+            </a>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-plus-circle"></i> Add New Entry</h3>
+            
+            <form method="POST" class="entry-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" name="date" required>
+                        <script>
+                            document.getElementById('date').valueAsDate = new Date();
+                        </script>
+                    </div>
                     
-                    <td>{{ entry.shift }}</td>
-                    <td>{{entry.current_inventory}}</td>
-                    {% for field_name in custom_fields %}
-                        <td>{{ entry.get(field_name, '') }}</td>
-                    {% endfor %}
-                    <td>{{ entry.notes }}</td>
-                    <td>
-                        {% set entry_date = entry.date %}
-                        {% set today = datetime.now().strftime('%Y-%m-%d') %}
-                        {% if (datetime.strptime(today, '%Y-%m-%d') - datetime.strptime(entry_date, '%Y-%m-%d')).days <= 1 %}
-                            <a href="{{ url_for('edit_entry', item_id=item_id, entry_id=entry.id) }}" 
-                            class="btn btn-sm btn-outline-primary">Edit</a>
+                    <div class="form-group">
+                        <label for="shift">Shift</label>
+                        <select id="shift" name="shift" required>
+                            <option value="day">Day</option>
+                            <option value="night">Night</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="purchased">Purchased/Added ({{item_unit}})</label>
+                        <input type="number" id="purchased" name="purchased" min="0" value="0" step="0.001" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="used">Used ({{item_unit}})</label>
+                        <input type="number" id="used" name="used" min="0" value="0" step="0.001" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="current_inventory">Current Inventory ({{item_unit}})</label>
+                        <input type="number" id="current_inventory" name="current_inventory" min="0" value="{{cur_inv}}" readonly>
+                    </div>
+                </div>
+                
+                {% for field_name, field_type in custom_fields.items() %}
+                    <div class="form-group">
+                        <label for="custom_{{ field_name }}">{{ field_name }}</label>
+                        {% if field_type == 'number' %}
+                            <input type="number" id="custom_{{ field_name }}" name="custom_{{ field_name }}" value="0" step="0.001" min="0">
+                        {% elif field_type == 'date' %}
+                            <input type="date" id="custom_{{ field_name }}" name="custom_{{ field_name }}">
                         {% else %}
-                        <span class="text-muted">Locked</span>
-                        {% endif %}    
-                        <!-- <a href="{{ url_for('edit_entry', item_id=item_id, entry_id=entry.id) }}" 
-                           class="btn btn-sm btn-outline-primary">Edit</a> -->
-                    </td>
-                    <!-- <td>
-                        <form method="POST" action="{{ url_for('delete_entry', item_id=item_id, entry_id=entry.id) }}" 
-                              onsubmit="return confirm('Are you sure you want to delete this entry?');">
-                            <button type="submit" class="delete-btn">×</button>
-                        </form>
-                    </td> -->
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="download-section">
-        <a href="{{ url_for('generate_excel', item_id=item_id) }}" class="btn download-btn">
-            Download Excel Report
-        </a>
+                            <input type="text" id="custom_{{ field_name }}" name="custom_{{ field_name }}">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="history-container">
+            <div class="history-header">
+                <h3><i class="fas fa-history"></i> Inventory History</h3>
+                
+                <div class="filters">
+                    <form method="GET" action="{{ url_for('item_form', item_id=item_id) }}" class="date-search-form">
+                        <div class="form-group">
+                            <label for="date_search">Search by Date</label>
+                            <div class="input-group">
+                                <input type="date" id="date_search" name="date_search" value="{{ search_res if search_res else '' }}"
+                                       max="{{ datetime.now().strftime('%Y-%m-%d') }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                {% if search_res %}
+                                <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn btn-outline">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+
+                    <form method="GET" action="{{ url_for('item_form', item_id=item_id) }}" class="filter-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="year">Year</label>
+                                <select name="year" id="year" onchange="this.form.submit()">
+                                    <option value="">All Years</option>
+                                    {% for year in available_years %}
+                                    <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>
+                                        {{ year }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="month">Month</label>
+                                <select name="month" id="month" onchange="this.form.submit()">
+                                    <option value="">All Months</option>
+                                    {% for month in available_months %}
+                                    <option value="{{ month[0][:2] }}" {% if month[0][:2] == current_month %}selected{% endif %}>
+                                        {{ month[1] }} ({{ month[0][3:] }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            {% if current_year or current_month %}
+                            <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn btn-outline">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if entries %}
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Purchased</th>
+                            <th>Used</th>
+                            <th>Shift</th>
+                            <th>Current</th>
+                            {% for field_name in custom_fields %}
+                                <th>{{ field_name }}</th>
+                            {% endfor %}
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                            <tr>
+                                <td>{{entry.id}}</td>
+                                <td>{{ entry.date }}</td>
+                                <td>{{ entry['purchased_' ~ item_unit] }}</td>
+                                <td>{{ entry['used_' ~ item_unit] }}</td>
+                                <td>{{ entry.shift }}</td>
+                                <td>{{entry.current_inventory}}</td>
+                                {% for field_name in custom_fields %}
+                                    <td>{{ entry.get(field_name, '') }}</td>
+                                {% endfor %}
+                                <td>{{ entry.notes }}</td>
+                                <td>
+                                    {% set entry_date = entry.date %}
+                                    {% set today = datetime.now().strftime('%Y-%m-%d') %}
+                                    {% if (datetime.strptime(today, '%Y-%m-%d') - datetime.strptime(entry_date, '%Y-%m-%d')).days <= 1 %}
+                                        <a href="{{ url_for('edit_entry', item_id=item_id, entry_id=entry.id) }}" 
+                                        class="btn-icon" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Locked</span>
+                                    {% endif %}    
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>No history entries</h3>
+                <p>Add your first entry to see it here</p>
+            </div>
+            {% endif %}
+
+            <div class="download-section">
+                <a href="{{ url_for('generate_excel', item_id=item_id) }}" class="btn btn-primary">
+                    <i class="fas fa-file-excel"></i> Download Excel Report
+                </a>
+            </div>
+        </div>
     </div>
-
-    <script>
-        // Check inventory status when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const statusDiv = document.querySelector('.inventory-status');
-            const minInv = parseInt(statusDiv.dataset.minInv);
-            const curInv = parseInt(statusDiv.dataset.curInv);
-            
-            // Hide the warning if current inventory is sufficient
-            if (curInv >= minInv) {
-                statusDiv.style.display = 'none';
-            }
-        });
-
-        //Toggle the change minimum iventory form on and off depewnding on user input
-        function toggleMinInvEdit() {
-            const form = document.getElementById('minInvForm');
-            const button = document.getElementById('editMinInvBtn');
-            
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                button.style.display = 'none';
-            } else {
-                form.style.display = 'none';
-                button.style.display = 'inline-block';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const editButtons = document.querySelectorAll('.edit-btn');
-            
-            editButtons.forEach(button => {
-                const row = button.closest('tr');
-                const entryDateStr = row.getAttribute('data-entry-date');
-                console.log(entryDateStr)
-                
-                // Convert strings to Date objects
-                const entryDate = new Date(entryDateStr);
-                const today = new Date();
-                
-                // Reset time components for accurate day comparison
-                today.setHours(0, 0, 0, 0);
-                entryDate.setHours(0, 0, 0, 0);
-                
-                // Calculate day difference
-                const timeDiff = today - entryDate;
-                const dayDiff = timeDiff / (1000 * 60 * 60 * 24);
-                
-                // Disable if older than 1 day
-                if (dayDiff > 1) {
-                    button.classList.add('disabled');
-                    button.style.pointerEvents = 'none';
-                    button.style.opacity = '0.6';
-                    button.textContent = 'Locked';
-                    button.href = 'javascript:void(0)';
-                }
-            });
-        });
-    </script>
 {% endblock %}
