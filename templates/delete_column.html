@@ -5,6 +5,15 @@
     <div class="form-header">
         <h2><i class="fas fa-trash-alt"></i> Delete Column from {{ item_name }}</h2>
     </div>
+    {% if not custom_fields: %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <h3>No Custom Fields </h3>
+            <p>There are no custom fields in this table</p>
+        </div>
+    </div>
+    {% else %}
     
     <form method="POST" class="item-form">
         <div class="form-group">
@@ -23,5 +32,6 @@
             <a href="{{ url_for('item_form', item_id=item_id) }}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
+    {% endif %}
 </div>
 {% endblock %}

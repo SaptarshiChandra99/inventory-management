@@ -131,7 +131,7 @@
                             <div class="input-group">
                                 <input type="date" id="date_search" name="date_search" value="{{ search_res if search_res else '' }}"
                                        max="{{ datetime.now().strftime('%Y-%m-%d') }}">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" style="border-radius: 20px;">
                                     <i class="fas fa-search"></i>
                                 </button>
                                 {% if search_res %}
@@ -235,7 +235,7 @@
             </div>
             {% endif %}
 
-            <div class="download-section">
+            <div class="download-section" style="margin: 1rem 0 1rem 1rem;">
                 <a href="{{ url_for('generate_excel', item_id=item_id) }}" class="btn btn-primary">
                     <i class="fas fa-file-excel"></i> Download Excel Report
                 </a>
