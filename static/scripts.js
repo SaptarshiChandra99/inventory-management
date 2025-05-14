@@ -50,19 +50,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Calculate current inventory when purchased or used changes
-    const purchasedInput = document.getElementById('purchased');
-    const usedInput = document.getElementById('used');
-    const currentInventoryInput = document.getElementById('current_inventory');
+    // const purchasedInput = document.getElementById('purchased');
+    // const usedInput = document.getElementById('used');
+    // const currentInventoryInput = document.getElementById('current_inventory');
     
-    if (purchasedInput && usedInput && currentInventoryInput) {
-        function calculateCurrentInventory() {
-            const purchased = parseFloat(purchasedInput.value) || 0;
-            const used = parseFloat(usedInput.value) || 0;
-            const current = parseFloat(currentInventoryInput.dataset.current) || 0;
-            currentInventoryInput.value = (current + purchased - used).toFixed(3);
-        }
+    // if (purchasedInput && usedInput && currentInventoryInput) {
+    //     function calculateCurrentInventory() {
+    //         const purchased = parseFloat(purchasedInput.value) || 0;
+    //         const used = parseFloat(usedInput.value) || 0;
+    //         const current = parseFloat(currentInventoryInput.value) || 0;
+    //         currentInventoryInput.value = (current + purchased - used).toFixed(3);
+    //     }
         
-        purchasedInput.addEventListener('input', calculateCurrentInventory);
-        usedInput.addEventListener('input', calculateCurrentInventory);
-    }
+    //     purchasedInput.addEventListener('input', calculateCurrentInventory);
+    //     usedInput.addEventListener('input', calculateCurrentInventory);
+    // }
 });
