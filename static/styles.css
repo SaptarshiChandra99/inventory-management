@@ -4,7 +4,7 @@
     --secondary-color: #3f37c9;
     --success-color: #4cc9f0;
     --danger-color: #f50c0c;
-    --warning-color: #f8961e;
+    --warning-color: #fa8f0d;
     --info-color: #4895ef;
     --light-color: #f8f9fa;
     --dark-color: #212529;
@@ -35,6 +35,10 @@ body {
 }
 
 /* Header */
+.item-header{
+    font-size: large;
+    font-weight: 500;
+}
 .app-header {
     background-color: var(--primary-color);
     color: var(--white);
@@ -63,7 +67,7 @@ body {
     justify-content: center;
     padding: 8px 16px;
     border-radius: var(--border-radius);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
@@ -107,14 +111,15 @@ body {
 }
 
 .btn-back {
-    background-color: transparent;
-    color: var(--gray-color);
+    background-color: var(--dark-color);
+    color: var(--light-color);
     padding: 5px 10px;
+    margin: .5rem 0;
 }
 
 .btn-back:hover {
-    color: var(--primary-color);
-    background-color: transparent;
+    color: var(--light-color);
+    background-color: var(--gray-color);
 }
 
 .btn-icon {
@@ -400,6 +405,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin: 1rem;
 }
 
 .form-group label {
@@ -481,8 +487,8 @@ body {
 }
 
 .alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: var(--danger-color);
+    color:var(--light-color);
     border: 1px solid #ffeeba;
 }
 
@@ -497,7 +503,7 @@ body {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 500;
     background-color: #e9ecef;
     color: var(--dark-color);
