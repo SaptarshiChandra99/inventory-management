@@ -522,16 +522,18 @@ def item_form(item_id):
         purchased = request.form.get('purchased' , 0)
         used = request.form.get('used' , 0)
         added_used_coils , current_no_coils =  0 , 0
+        print(has_rolls , "has rolls state")
         if has_rolls:
-            added_used_coils = request.form.get('added_used_coils' , 0)
-            current_no_coils = request.form.get('current_no_coils' , 0)
+            added_used_coils = int(request.form.get('added_used_coils' , 0))
+            current_no_coils = int(request.form.get('current_no_coils' , 0))
+            print(added_used_coils , current_no_coils , "!!!!!!!!!!!!!!! coils")
             
         shift = request.form.get('shift', 'day')
         notes = request.form.get('notes', '')
        # print(cur_inv , purchased , used ,  '!!!!!!')
         current_inventory = round((cur_inv + float(purchased)) - float(used) , 3) 
         if has_rolls:
-            current_no_coils = (current_no_coils + added_used_coils) - added_used_coils
+            current_no_coils = (current_no_coils + added_used_coils)
         # Prepare columns and values
         columns = ['item_id','date' , 'purchased_'+item_unit , 'used_'+item_unit, 'current_inventory' , 'shift', 'notes']
         values = [item_id ,date , purchased ,used , current_inventory , shift, notes]

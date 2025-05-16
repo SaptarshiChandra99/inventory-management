@@ -89,8 +89,8 @@
                     </div>
                     {% if has_rolls %}
                     <div class="form-group">
-                        <label for="added_used_coil">No of coils Added/Used: </label>
-                        <input type="number" id="added_used_coil" name="added_used_coil" min="0" value="0" step="1" required>
+                        <label for="added_used_coils">No of coils Added/Used: </label>
+                        <input type="number" id="added_used_coils" name="added_used_coils" min="0" value="0" step="1" required>
                     </div>
                     {% endif %}
                     <div class="form-group">
@@ -99,8 +99,8 @@
                     </div>
                     {% if has_rolls %}
                     <div class="form-group">
-                        <label for="current_no_coil">No of coils in Stock: </label>
-                        <input type="number" id="current_no_coil" name="current_no_coil" min="0" value="0" step="1" required>
+                        <label for="current_no_coils">No of coils in Stock: </label>
+                        <input type="number" id="current_no_coils" name="current_no_coils" min="0" value="0" step="1" required>
                     </div>
                     {% endif %}
                 </div>
@@ -218,13 +218,13 @@
                                 <td>{{ entry['purchased_' ~ item_unit] }}</td>
                                 <td>{{ entry['used_' ~ item_unit] }}</td>
                                 {% if has_rolls %}
-                                    <td>{{ entry['added_used_coil'] }}</td>
+                                    <td>{{ entry['added_used_coils'] }}</td>
                                 {% endif %}
                                 
                                 <td>{{ entry.shift }}</td>
                                 <td>{{entry.current_inventory}}</td>
                                 {% if has_rolls %}
-                                    <td>{{ entry['current_no_coil'] }}</td>
+                                    <td>{{ entry['current_no_coils'] }}</td>
                                 {% endif %}
                                 {% for field_name in custom_fields %}
                                     <td>{{ entry.get(field_name, '') }}</td>
