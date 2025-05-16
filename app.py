@@ -329,11 +329,13 @@ def create_item_table(c,item_name, item_unit ,custom_fields,has_rolls):
         "purchased_"+ item_unit  +" REAL",
         "used_"+ item_unit  +" REAL",   ]
     if has_rolls:
-        columns.append("added_used_coils INTEGER ,")
-    columns.append("date DATE , current_inventory REAL CHECK(current_inventory >= 0) default 0")
+        columns.append("added_used_coils INTEGER ")
+    columns.append("date DATE")
+    columns.append("current_inventory REAL CHECK(current_inventory >= 0) default 0")
     if has_rolls:
-        columns.append("current_coils INTEGER ,")
-    columns.append("shift TEXT ,notes TEXT")
+        columns.append("current_no_coils INTEGER ")
+    columns.append("shift TEXT")
+    columns.append("notes TEXT")
     
     
     # Add custom fields as columns
@@ -505,13 +507,13 @@ def item_form(item_id):
     c = conn.cursor()
     
     # Get item details
-    c.execute('SELECT name, item_type,item_unit, minimum_inventory,current_inventory, custom_fields FROM items WHERE id = ?', (item_id,))
+    c.execute('SELECT name, item_type,item_unit, minimum_inventory,current_inventory,has_rolls ,custom_fields FROM items WHERE id = ?', (item_id,))
     item = c.fetchone()
     
     if not item:
         return "Item not found", 404
     
-    item_name, item_type, item_unit ,min_inv,cur_inv, custom_fields_str = item
+    item_name, item_type, item_unit ,min_inv,cur_inv,has_rolls, custom_fields_str = item
     custom_fields = json.loads(custom_fields_str) if custom_fields_str else {}
     table_name = f"item_{normalize_names(item_name)}"
     
@@ -519,14 +521,26 @@ def item_form(item_id):
         date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
         purchased = request.form.get('purchased' , 0)
         used = request.form.get('used' , 0)
+        added_used_coils , current_no_coils =  0 , 0
+        if has_rolls:
+            added_used_coils = request.form.get('added_used_coils' , 0)
+            current_no_coils = request.form.get('current_no_coils' , 0)
+            
         shift = request.form.get('shift', 'day')
         notes = request.form.get('notes', '')
        # print(cur_inv , purchased , used ,  '!!!!!!')
         current_inventory = round((cur_inv + float(purchased)) - float(used) , 3) 
+        if has_rolls:
+            current_no_coils = (current_no_coils + added_used_coils) - added_used_coils
         # Prepare columns and values
         columns = ['item_id','date' , 'purchased_'+item_unit , 'used_'+item_unit, 'current_inventory' , 'shift', 'notes']
         values = [item_id ,date , purchased ,used , current_inventory , shift, notes]
-        
+        if has_rolls:
+            columns.insert(4 , 'added_used_coils')
+            columns.insert(6 , 'current_no_coils')
+            values.insert(4 , added_used_coils)
+            values.insert(6 , current_no_coils)
+        print(columns , values)    
         # Add custom fields
         for field_name in custom_fields:
             columns.append(field_name)
@@ -543,7 +557,7 @@ def item_form(item_id):
        
         print("updated current inventory in items table")
         conn.commit()
-        return redirect(url_for('item_form', item_id=item_id))
+        return redirect(url_for('item_form', item_id=item_id ))
     
 #     # Get all entries for this item
 #     c.execute(f"SELECT * FROM {table_name} ORDER BY id ASC")
@@ -629,6 +643,7 @@ def item_form(item_id):
                          item_unit = item_unit,
                          min_inv=min_inv,
                          cur_inv = cur_inv,
+                         has_rolls = has_rolls,
                          custom_fields=custom_fields,
                          entries=entries,
                          current_date=datetime.now().strftime('%Y-%m-%d'),
