@@ -23,7 +23,7 @@ def init_db():
         conn = get_db_connection()
         c = conn.cursor()
         
-        # Create items table (metadata only)
+        # Create items table (metadata only) 10 fields
         c.execute('''CREATE TABLE IF NOT EXISTS items
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                       name TEXT UNIQUE,
@@ -33,6 +33,7 @@ def init_db():
                       current_inventory REAL check(current_inventory >= 0) default 0,
                       init_inventory_pm REAL,
                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                      has_rolls INTEGER BOOLEAN DEFAULT 0,
                       custom_fields TEXT)''')
         conn.commit()
         conn.close()
@@ -314,7 +315,7 @@ def normalize_names(names: str) -> str:
 
 #def no_of_low_inv_item():
 
-def create_item_table(c,item_name, item_unit ,custom_fields):
+def create_item_table(c,item_name, item_unit ,custom_fields,has_rolls):
    # conn = sqlite3.connect('inventory.db')
   #  c = conn.cursor()
     
@@ -326,12 +327,14 @@ def create_item_table(c,item_name, item_unit ,custom_fields):
         "id INTEGER PRIMARY KEY AUTOINCREMENT",
         "item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE",
         "purchased_"+ item_unit  +" REAL",
-        "used_"+ item_unit  +" REAL",
-        "date DATE",
-        "current_inventory REAL CHECK(current_inventory >= 0) default 0",
-        "shift TEXT",
-        "notes TEXT"
-    ]
+        "used_"+ item_unit  +" REAL",   ]
+    if has_rolls:
+        columns.append("added_used_coils INTEGER ,")
+    columns.append("date DATE , current_inventory REAL CHECK(current_inventory >= 0) default 0")
+    if has_rolls:
+        columns.append("current_coils INTEGER ,")
+    columns.append("shift TEXT ,notes TEXT")
+    
     
     # Add custom fields as columns
     for field_name, field_type in custom_fields.items():
@@ -360,7 +363,8 @@ def add_item():
         item_type = request.form['item_type']
         item_unit = request.form['item_unit']
         minimum_inventory = request.form.get('minimum_inventory', 0)
-        current_inventory = request.form.get('current_inventory',0)  
+        current_inventory = request.form.get('current_inventory',0)
+        has_rolls = request.form.get('add_no_roll') == 'yes'  
         init_inventory_pm = current_inventory
         # Handle custom fields
         custom_fields = {}
@@ -374,13 +378,12 @@ def add_item():
                     custom_fields[field_name] = field_type
         
         conn = get_db_connection()
-        c = conn.cursor()
-        
+        c = conn.cursor()        
         try:
             # Save item metadata
-            c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,init_inventory_pm,custom_fields) VALUES (?,?, ?, ?, ? ,?, ?)',
-                     (name, item_type,item_unit, minimum_inventory,init_inventory_pm, current_inventory,json.dumps(custom_fields)))
-            create_item_table(c,name, item_unit, custom_fields)
+            c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,init_inventory_pm,has_rolls ,custom_fields) VALUES (?,?, ?, ?, ? ,?, ?,?)',
+                     (name, item_type,item_unit, minimum_inventory,init_inventory_pm, current_inventory,has_rolls,json.dumps(custom_fields)))
+            create_item_table(c,name, item_unit, custom_fields,has_rolls)
             conn.commit()
             return redirect(url_for('index'))
         except sqlite3.IntegrityError:
