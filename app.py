@@ -564,16 +564,36 @@ def item_form(item_id):
     item_name, item_type, item_unit ,min_inv,cur_inv,has_rolls, custom_fields_str = item
     custom_fields = json.loads(custom_fields_str) if custom_fields_str else {}
     table_name = f"item_{normalize_names(item_name)}"
+    current_no_coils = 0
+     # Only try to fetch from database if has_rolls is True
+    if has_rolls:
+        try:
+            c.execute(f'SELECT current_no_coils FROM {table_name} ORDER BY id DESC LIMIT 1')
+            last_coil_row = c.fetchone()
+            if last_coil_row:
+                current_no_coils = last_coil_row[0]
+        except sqlite3.Error as e:
+            print(f"Error fetching last coil count: {e}")
+            current_no_coils = 0  # Default to 0 if error occurs
     
     if request.method == 'POST':
         date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
         purchased = request.form.get('purchased' , 0)
         used = request.form.get('used' , 0)
-        added_used_coils , current_no_coils =  0 , 0
+        added_used_coils = 0
         print(has_rolls , "has rolls state")
         if has_rolls:
             added_used_coils = int(request.form.get('added_used_coils' , 0))
-            current_no_coils = int(request.form.get('current_no_coils' , 0))
+            try:
+                # Get the most recent current_no_coils value
+                c.execute(f'SELECT current_no_coils FROM {table_name} ORDER BY id DESC LIMIT 1')
+                last_coil_row = c.fetchone()
+                if last_coil_row:
+                    current_no_coils = last_coil_row[0]
+            except sqlite3.Error as e:
+                print(f"Error fetching last coil count: {e}")
+               
+           # current_no_coils = int(request.form.get('current_no_coils' , 0))
             print(added_used_coils , current_no_coils , "!!!!!!!!!!!!!!! coils")
             
         shift = request.form.get('shift', 'day')
@@ -683,7 +703,7 @@ def item_form(item_id):
     # columns = [description[0] for description in c.description]
     # entries = [dict(zip(columns, row)) for row in c.fetchall()]
     
-
+    
     
     conn.close()
     
@@ -700,6 +720,7 @@ def item_form(item_id):
                          current_date=datetime.now().strftime('%Y-%m-%d'),
                          available_years=available_years,
                          available_months=available_months,
+                         current_no_coils = current_no_coils,
                          current_year=year,
                          current_month=month)
 
