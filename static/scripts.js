@@ -1,4 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('add_no_roll');
+    const coilsField = document.querySelector('.coils-field');
+    
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            coilsField.style.display = 'flex';
+            document.getElementById('current_no_coils').setAttribute('required', 'required');
+        } else {
+            coilsField.style.display = 'none';
+            document.getElementById('current_no_coils').removeAttribute('required');
+        }
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
     // Toggle minimum inventory form
     window.toggleMinInvEdit = function() {
         const form = document.getElementById('minInvForm');
