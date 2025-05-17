@@ -366,7 +366,8 @@ def add_item():
         item_unit = request.form['item_unit']
         minimum_inventory = request.form.get('minimum_inventory', 0)
         current_inventory = request.form.get('current_inventory',0)
-        has_rolls = request.form.get('add_no_roll') == 'yes'  
+        has_rolls = request.form.get('add_no_roll') == 'yes' 
+        current_no_coils = request.form.get('current_no_coils', 0) 
         init_inventory_pm = current_inventory
         # Handle custom fields
         custom_fields = {}
@@ -385,7 +386,54 @@ def add_item():
             # Save item metadata
             c.execute('INSERT INTO items (name, item_type, item_unit, minimum_inventory,current_inventory,init_inventory_pm,has_rolls ,custom_fields) VALUES (?,?, ?, ?, ? ,?, ?,?)',
                      (name, item_type,item_unit, minimum_inventory,init_inventory_pm, current_inventory,has_rolls,json.dumps(custom_fields)))
-            create_item_table(c,name, item_unit, custom_fields,has_rolls)
+            #create_item_table(c,name, item_unit, custom_fields,has_rolls)
+            #####
+             # Get the newly inserted item ID
+            item_id = c.lastrowid
+            
+            # Create the item table
+            table_name = create_item_table(c, name, item_unit, custom_fields, has_rolls)
+            
+            # Prepare the initial entry with default values
+            columns = [
+                'item_id',
+                f'purchased_{item_unit}',
+                f'used_{item_unit}',
+                'date',
+                'current_inventory',
+                'shift',
+                'notes'
+            ]
+            values = [
+                item_id,
+                0,  # purchased
+                0,  # used
+                datetime.now().strftime('%Y-%m-%d'),
+                current_inventory,
+                'day',
+                'Initial inventory entry'
+            ]
+            
+            # Add rolls columns if enabled
+            if has_rolls:
+                columns.extend(['added_used_coils', 'current_no_coils'])
+                values.extend([0, current_no_coils])
+            
+            # Add custom fields with default values
+            for field_name, field_type in custom_fields.items():
+                columns.append(field_name)
+                if field_type == 'number':
+                    values.append(0)
+                elif field_type == 'date':
+                    values.append(None)
+                else:
+                    values.append('')
+            
+            # Insert the initial entry
+            placeholders = ', '.join(['?'] * len(values))
+            insert_sql = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({placeholders})"
+            c.execute(insert_sql, values)
+            #####
             conn.commit()
             return redirect(url_for('index'))
         except sqlite3.IntegrityError:
@@ -534,6 +582,7 @@ def item_form(item_id):
         current_inventory = round((cur_inv + float(purchased)) - float(used) , 3) 
         if has_rolls:
             current_no_coils = (current_no_coils + added_used_coils)
+            print(current_no_coils , "current no coils !!!!!!!!!!!!! current no coils")
         # Prepare columns and values
         columns = ['item_id','date' , 'purchased_'+item_unit , 'used_'+item_unit, 'current_inventory' , 'shift', 'notes']
         values = [item_id ,date , purchased ,used , current_inventory , shift, notes]
