@@ -214,6 +214,9 @@ def edit_entry(item_id, entry_id):
             c.execute(f"SELECT * FROM {table_name} ORDER BY id ASC")
             columns = [description[0] for description in c.description]
             entries = [dict(zip(columns, row)) for row in c.fetchall()]
+
+            if has_rolls:
+                current_no_coils = getCurrentNoCoils(table_name)
             
             return render_template('item_form.html',
                                 item_id=item_id,
@@ -222,6 +225,7 @@ def edit_entry(item_id, entry_id):
                                 item_unit=item_unit,
                                 min_inv=min_inv,
                                 cur_inv=cur_inv,
+                                current_no_coils = current_no_coils,
                                 has_rolls=has_rolls,
                                 custom_fields=custom_fields,
                                 entries=entries,
@@ -585,6 +589,20 @@ def delete_column(item_id):
     finally:
         conn.close()
 
+def getCurrentNoCoils(table_name):
+    con = get_db_connection()
+    c = con.cursor()
+    current_no_coils = 0
+    try:
+            c.execute(f'SELECT current_no_coils FROM {table_name} ORDER BY id DESC LIMIT 1')
+            last_coil_row = c.fetchone()
+            if last_coil_row:
+                current_no_coils = last_coil_row[0]
+    except sqlite3.Error as e:
+            print(f"Error fetching last coil count: {e}")
+            current_no_coils = 0  # Default to 0 if error occurs
+    return current_no_coils        
+
 @app.route('/item/<int:item_id>', methods=['GET', 'POST'])
 def item_form(item_id):
     conn = get_db_connection()
@@ -604,13 +622,9 @@ def item_form(item_id):
      # Only try to fetch from database if has_rolls is True
     if has_rolls:
         try:
-            c.execute(f'SELECT current_no_coils FROM {table_name} ORDER BY id DESC LIMIT 1')
-            last_coil_row = c.fetchone()
-            if last_coil_row:
-                current_no_coils = last_coil_row[0]
+            current_no_coils = getCurrentNoCoils(table_name)
         except sqlite3.Error as e:
             print(f"Error fetching last coil count: {e}")
-            current_no_coils = 0  # Default to 0 if error occurs
     
     if request.method == 'POST':
         date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
