@@ -772,7 +772,8 @@ def item_form(item_id):
                          available_months=available_months,
                          current_no_coils = current_no_coils,
                          current_year=year,
-                         current_month=month)
+                         current_month=month,
+                         message = 'New Entry added Succesfully')
 
 
 @app.route('/download_excel/<int:item_id>')
